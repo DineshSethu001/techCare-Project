@@ -3,7 +3,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-
+import { LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   Phone,
@@ -15,10 +16,7 @@ import {
   MessageCircle,
   Bell,
   X,
-  LogOut,
 } from "lucide-react";
-
-import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const [bookings, setBookings] = useState([]);
@@ -26,69 +24,59 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [newBooking, setNewBooking] = useState(null);
+const navigate = useNavigate();
 
+const logout = () => {
+  localStorage.removeItem("adminToken");
+  navigate("/admin/login");
+};
+  // Stores the previous bookings
   const previousBookings = useRef([]);
-  const navigate = useNavigate();
 
   // =====================================
-  // LOGOUT
+  // Fetch bookings
   // =====================================
-  const logout = () => {
-    localStorage.removeItem("adminToken");
-    navigate("/admin/login");
-  };
+ const fetchBookings = async () => {
+  try {
+    setLoading(true);
 
-  // =====================================
-  // FETCH BOOKINGS
-  // =====================================
-  const fetchBookings = async () => {
-    try {
-      setLoading(true);
-      setError("");
+    const token = localStorage.getItem("adminToken");
 
-      const token = localStorage.getItem("adminToken");
-
-      // No token
-      if (!token) {
-        navigate("/admin/login");
-        return;
-      }
-
-      const response = await fetch(
-        "http://localhost:5000/api/bookings",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      // Token expired / invalid
-      if (response.status === 401) {
-        localStorage.removeItem("adminToken");
-        navigate("/admin/login");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to fetch bookings"
-        );
-      }
-
-      setBookings(data.bookings || []);
-    } catch (error) {
-      console.error("Fetch bookings error:", error);
-      setError("Unable to load bookings.");
-    } finally {
-      setLoading(false);
+    if (!token) {
+      navigate("/admin-login");
+      return;
     }
-  };
 
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/bookings`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Unable to load bookings"
+      );
+    }
+
+    setBookings(data.bookings);
+
+  } catch (error) {
+    console.error("Bookings error:", error);
+    setError(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
   // =====================================
-  // BROWSER NOTIFICATION PERMISSION
+  // Browser notification permission
   // =====================================
   useEffect(() => {
     if ("Notification" in window) {
@@ -97,14 +85,14 @@ const AdminDashboard = () => {
   }, []);
 
   // =====================================
-  // INITIAL LOAD
+  // Initial booking load
   // =====================================
   useEffect(() => {
     fetchBookings();
   }, []);
 
   // =====================================
-  // NEW BOOKING NOTIFICATION
+  // Show new booking notification
   // =====================================
   const showNewBookingNotification = (booking) => {
     setNewBooking(booking);
@@ -135,70 +123,41 @@ const AdminDashboard = () => {
   };
 
   // =====================================
-  // CHECK NEW BOOKINGS EVERY 10 SECONDS
+  // Check for new bookings every 10 seconds
   // =====================================
   useEffect(() => {
     const checkForNewBookings = async () => {
       try {
-        const token =
-          localStorage.getItem("adminToken");
-
-        // No token
-        if (!token) {
-          navigate("/admin/login");
-          return;
-        }
-
         const response = await fetch(
-          "http://localhost:5000/api/bookings",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          "http://localhost:5000/api/bookings"
         );
 
         const data = await response.json();
-
-        // Token expired
-        if (response.status === 401) {
-          localStorage.removeItem("adminToken");
-          navigate("/admin/login");
-          return;
-        }
 
         if (!response.ok) {
           return;
         }
 
-        const latestBookings =
-          data.bookings || [];
+        const latestBookings = data.bookings || [];
 
-        const previousIds =
-          previousBookings.current.map(
-            (booking) => booking._id
-          );
+        const previousIds = previousBookings.current.map(
+          (booking) => booking._id
+        );
 
-        const newlyAddedBooking =
-          latestBookings.find(
-            (booking) =>
-              !previousIds.includes(
-                booking._id
-              )
-          );
+        const newBooking = latestBookings.find(
+          (booking) =>
+            !previousIds.includes(booking._id)
+        );
 
         // Don't notify on first page load
         if (
           previousBookings.current.length > 0 &&
-          newlyAddedBooking
+          newBooking
         ) {
-          showNewBookingNotification(
-            newlyAddedBooking
-          );
+          showNewBookingNotification(newBooking);
         }
 
-        previousBookings.current =
-          latestBookings;
+        previousBookings.current = latestBookings;
 
         setBookings(latestBookings);
       } catch (error) {
@@ -209,59 +168,38 @@ const AdminDashboard = () => {
       }
     };
 
-    // Initial snapshot
+    // First snapshot
     checkForNewBookings();
 
-    // Every 10 seconds
+    // Check every 10 seconds
     const interval = setInterval(
       checkForNewBookings,
       10000
     );
 
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, []);
 
   // =====================================
-  // UPDATE BOOKING STATUS
+  // Update booking status
   // =====================================
   const updateStatus = async (
     bookingId,
     status
   ) => {
     try {
-      const token =
-        localStorage.getItem("adminToken");
-
-      // No token
-      if (!token) {
-        navigate("/admin/login");
-        return;
-      }
-
       const response = await fetch(
         `http://localhost:5000/api/bookings/${bookingId}/status`,
         {
           method: "PUT",
-
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
-
-          body: JSON.stringify({
-            status,
-          }),
+          body: JSON.stringify({ status }),
         }
       );
 
       const data = await response.json();
-
-      // Token expired
-      if (response.status === 401) {
-        localStorage.removeItem("adminToken");
-        navigate("/admin/login");
-        return;
-      }
 
       if (!response.ok) {
         throw new Error(
@@ -278,7 +216,7 @@ const AdminDashboard = () => {
         )
       );
 
-      // Keep notification reference updated
+      // Keep previousBookings in sync
       previousBookings.current =
         previousBookings.current.map(
           (booking) =>
@@ -299,11 +237,9 @@ const AdminDashboard = () => {
   };
 
   // =====================================
-  // WHATSAPP COMPLETION MESSAGE
+  // WhatsApp completion message
   // =====================================
-  const sendCompletionWhatsApp = (
-    booking
-  ) => {
+  const sendCompletionWhatsApp = (booking) => {
     const whatsappNumber =
       booking.phone.replace(/\D/g, "");
 
@@ -335,7 +271,7 @@ If you need any further assistance, please contact us.
   };
 
   // =====================================
-  // SEARCH
+  // Search
   // =====================================
   const filteredBookings =
     bookings.filter((booking) => {
@@ -346,7 +282,8 @@ If you need any further assistance, please contact us.
         booking.name
           ?.toLowerCase()
           .includes(searchText) ||
-        booking.phone?.includes(searchText) ||
+        booking.phone
+          ?.includes(searchText) ||
         booking.service
           ?.toLowerCase()
           .includes(searchText) ||
@@ -357,7 +294,7 @@ If you need any further assistance, please contact us.
     });
 
   // =====================================
-  // STATUS COUNTS
+  // Status counts
   // =====================================
   const pendingCount =
     bookings.filter(
@@ -383,13 +320,12 @@ If you need any further assistance, please contact us.
         booking.status === "Completed"
     ).length;
 
-  // =====================================
-  // UI
-  // =====================================
   return (
     <div className="min-h-screen bg-slate-100">
 
-      {/* HEADER */}
+      {/* =====================================
+          HEADER
+      ====================================== */}
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 md:px-6">
 
@@ -403,33 +339,33 @@ If you need any further assistance, please contact us.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
 
-            {/* Refresh */}
-            <button
-              onClick={fetchBookings}
-              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-            >
-              <RefreshCw size={17} />
-              Refresh
-            </button>
+          <button
+            onClick={fetchBookings}
+            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            <RefreshCw size={17} />
+            Refresh
+          </button>
+          <button
+  onClick={logout}
+  className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-100"
+>
+  <LogOut size={17} />
+  Logout
+</button>
 
-            {/* Logout */}
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-100"
-            >
-              <LogOut size={17} />
-              Logout
-            </button>
-
-          </div>
         </div>
       </header>
 
+      {/* =====================================
+          MAIN
+      ====================================== */}
       <main className="mx-auto max-w-7xl px-4 py-6 md:px-6">
 
-        {/* NEW BOOKING NOTIFICATION */}
+        {/* =====================================
+            NEW BOOKING NOTIFICATION
+        ====================================== */}
         {newBooking && (
           <div className="mb-6 flex items-start justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
 
@@ -440,7 +376,6 @@ If you need any further assistance, please contact us.
               </div>
 
               <div>
-
                 <p className="font-bold text-blue-900">
                   New Booking Received
                 </p>
@@ -459,7 +394,6 @@ If you need any further assistance, please contact us.
                   Booking ID:{" "}
                   {newBooking.bookingId}
                 </p>
-
               </div>
 
             </div>
@@ -476,7 +410,9 @@ If you need any further assistance, please contact us.
           </div>
         )}
 
-        {/* STATS */}
+        {/* =====================================
+            STATS
+        ====================================== */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
 
           <StatCard
@@ -521,7 +457,9 @@ If you need any further assistance, please contact us.
 
         </div>
 
-        {/* SEARCH */}
+        {/* =====================================
+            SEARCH
+        ====================================== */}
         <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
 
           <div className="relative max-w-md">
@@ -545,7 +483,9 @@ If you need any further assistance, please contact us.
 
         </div>
 
-        {/* LOADING */}
+        {/* =====================================
+            LOADING
+        ====================================== */}
         {loading && (
           <div className="flex items-center justify-center py-20 text-slate-500">
 
@@ -559,14 +499,18 @@ If you need any further assistance, please contact us.
           </div>
         )}
 
-        {/* ERROR */}
+        {/* =====================================
+            ERROR
+        ====================================== */}
         {!loading && error && (
           <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">
             {error}
           </div>
         )}
 
-        {/* TABLE */}
+        {/* =====================================
+            TABLE
+        ====================================== */}
         {!loading && !error && (
           <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
 
@@ -610,6 +554,7 @@ If you need any further assistance, please contact us.
 
                   {filteredBookings.map(
                     (booking) => (
+
                       <tr
                         key={booking._id}
                         className="hover:bg-slate-50"
@@ -712,7 +657,6 @@ If you need any further assistance, please contact us.
 
                             </select>
 
-                            {/* WhatsApp */}
                             {booking.status ===
                               "Completed" && (
                               <button
@@ -744,8 +688,7 @@ If you need any further assistance, please contact us.
 
               </table>
 
-              {filteredBookings.length ===
-                0 && (
+              {filteredBookings.length === 0 && (
                 <div className="p-12 text-center text-slate-500">
                   No bookings found.
                 </div>
@@ -761,8 +704,9 @@ If you need any further assistance, please contact us.
   );
 };
 
+
 // =====================================
-// STAT CARD
+// Stats Card
 // =====================================
 const StatCard = ({
   title,
@@ -800,10 +744,12 @@ const StatCard = ({
   );
 };
 
+
 // =====================================
-// STATUS BADGE
+// Status Badge
 // =====================================
 const StatusBadge = ({ status }) => {
+
   const styles = {
     Pending:
       "bg-yellow-100 text-yellow-700",
