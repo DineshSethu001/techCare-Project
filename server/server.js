@@ -15,7 +15,13 @@ console.log("ENV CHECK:", {
   JWT_SECRET: !!process.env.JWT_SECRET,
   NODE_ENV: process.env.NODE_ENV,
 });
-
+console.log("ADMIN ENV CHECK:", {
+  emailExists: !!process.env.ADMIN_EMAIL,
+  passwordExists: !!process.env.ADMIN_PASSWORD,
+  jwtExists: !!process.env.JWT_SECRET,
+  emailLength: process.env.ADMIN_EMAIL?.length,
+  passwordLength: process.env.ADMIN_PASSWORD?.length,
+});
 const app = express();
 
 const PORT = process.env.PORT || 5000;
@@ -112,18 +118,18 @@ app.post("/api/auth/login", async (req, res) => {
       });
     }
 
-    const emailMatch =
-      email === process.env.ADMIN_EMAIL;
+   const emailMatch =
+  email.trim() === process.env.ADMIN_EMAIL?.trim();
 
-    const passwordMatch =
-      password === process.env.ADMIN_PASSWORD;
+const passwordMatch =
+  password === process.env.ADMIN_PASSWORD;
 
-    if (!emailMatch || !passwordMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
+console.log("LOGIN CHECK:", {
+  emailReceived: !!email,
+  passwordReceived: !!password,
+  emailMatch,
+  passwordMatch,
+});
 
     const token = jwt.sign(
       {
