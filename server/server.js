@@ -3,18 +3,25 @@ import cors from "cors";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 
-import connectDB from "./config/db.js";
+// import connectDB from "./config/db.js";
 import Booking from "./models/Booking.js";
 import protect from "./middleware/authMiddleware.js";
 
 dotenv.config();
+console.log("ENV CHECK:", {
+  MONGO_URI: !!process.env.MONGO_URI,
+  ADMIN_EMAIL: !!process.env.ADMIN_EMAIL,
+  ADMIN_PASSWORD: !!process.env.ADMIN_PASSWORD,
+  JWT_SECRET: !!process.env.JWT_SECRET,
+  NODE_ENV: process.env.NODE_ENV,
+});
 
 const app = express();
 
 const PORT = process.env.PORT || 5000;
 
 // Connect MongoDB
-connectDB();
+// connectDB();
 
 // Middleware
 app.use(
