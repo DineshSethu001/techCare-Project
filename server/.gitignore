@@ -1,6 +1,6 @@
 .env
--username
-    dineshsethu15981_db_user
 
--password
-    3VKG1odgQGwFm5U2
+node_modules
+.env
+dist
+.vercel
