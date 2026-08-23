@@ -19,16 +19,16 @@ const sendWhatsApp = async (e) => {
   e.preventDefault();
 
   try {
-    const response = await fetch(
-      fetch(`${import.meta.env.VITE_API_URL}/api/bookings`),
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      }
-    );
+  const response = await fetch(
+  `${import.meta.env.VITE_API_URL}/api/bookings`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(form),
+  }
+);
 
     const data = await response.json();
 
@@ -122,7 +122,7 @@ const sendWhatsApp = async (e) => {
 
         {/* Form */}
         <form
-          onSubmit={sendWhatsApp}
+          onSubmit={handleBooking}
           className="border rounded-2xl p-6 shadow-sm"
         >
 

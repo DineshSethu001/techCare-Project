@@ -56,7 +56,7 @@ app.get("/", (req, res) => {
 // CREATE BOOKING
 // ===============================
 
-app.post("/api/bookings", async (req, res) => {
+app.post("/api/bookings", protect,async (req, res) => {
   try {
     const {
       name,
