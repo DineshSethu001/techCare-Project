@@ -1,0 +1,13 @@
+React
+   ↓
+Tailwind CSS
+   ↓
+Node.js
+   ↓
+Express.js
+   ↓
+MongoDB
+   ↓
+WhatsApp API
+   ↓
+Google Sheets
