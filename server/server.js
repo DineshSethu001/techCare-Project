@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+
 import connectDB from "./config/db.js";
 import Booking from "./models/Booking.js";
 import protect from "./middleware/authMiddleware.js";
@@ -23,16 +23,26 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
-);app.use(express.json());
+);
 
-// Test route
+app.use(express.json());
+
+
+// ===============================
+// TEST ROUTE
+// ===============================
+
 app.get("/", (req, res) => {
   res.json({
     message: "TechCare API is running",
   });
 });
 
-// Create booking
+
+// ===============================
+// CREATE BOOKING
+// ===============================
+
 app.post("/api/bookings", async (req, res) => {
   try {
     const {
@@ -44,7 +54,6 @@ app.post("/api/bookings", async (req, res) => {
       message,
     } = req.body;
 
-    // Basic validation
     if (!name || !phone || !service || !date || !address) {
       return res.status(400).json({
         success: false,
@@ -52,10 +61,8 @@ app.post("/api/bookings", async (req, res) => {
       });
     }
 
-    // Generate booking ID
     const bookingId = `TC-${Date.now()}`;
 
-    // Create booking
     const booking = await Booking.create({
       bookingId,
       name,
@@ -81,7 +88,12 @@ app.post("/api/bookings", async (req, res) => {
     });
   }
 });
-// login authentication
+
+
+// ===============================
+// ADMIN LOGIN
+// ===============================
+
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -122,6 +134,7 @@ app.post("/api/auth/login", async (req, res) => {
       message: "Login successful",
       token,
     });
+
   } catch (error) {
     console.error("Login error:", error);
 
@@ -131,78 +144,110 @@ app.post("/api/auth/login", async (req, res) => {
     });
   }
 });
-// Get all bookings
-app.get("/api/bookings",protect, async (req, res) => {
-  try {
-    const bookings = await Booking.find().sort({ createdAt: -1 });
 
-    res.status(200).json({
-      success: true,
-      bookings,
-    });
-  } catch (error) {
-    console.error("Get bookings error:", error);
 
-    res.status(500).json({
-      success: false,
-      message: "Unable to fetch bookings",
-    });
+// ===============================
+// GET ALL BOOKINGS
+// ===============================
+
+app.get(
+  "/api/bookings",
+  protect,
+  async (req, res) => {
+    try {
+      const bookings = await Booking
+        .find()
+        .sort({ createdAt: -1 });
+
+      res.status(200).json({
+        success: true,
+        bookings,
+      });
+
+    } catch (error) {
+      console.error("Get bookings error:", error);
+
+      res.status(500).json({
+        success: false,
+        message: "Unable to fetch bookings",
+      });
+    }
   }
-});
+);
 
+
+// ===============================
 // UPDATE BOOKING STATUS
+// ===============================
+
 app.put(
   "/api/bookings/:id/status",
   protect,
   async (req, res) => {
-  try {
-    const { status } = req.body;
+    try {
+      const { status } = req.body;
 
-    const allowedStatuses = [
-      "Pending",
-      "Assigned",
-      "In Progress",
-      "Completed",
-    ];
+      const allowedStatuses = [
+        "Pending",
+        "Assigned",
+        "In Progress",
+        "Completed",
+      ];
 
-    if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid status",
+        });
+      }
+
+      const booking =
+        await Booking.findByIdAndUpdate(
+          req.params.id,
+          { status },
+          { new: true }
+        );
+
+      if (!booking) {
+        return res.status(404).json({
+          success: false,
+          message: "Booking not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Booking status updated",
+        booking,
+      });
+
+    } catch (error) {
+      console.error(
+        "Status update error:",
+        error
+      );
+
+      res.status(500).json({
         success: false,
-        message: "Invalid status",
+        message: "Unable to update booking status",
       });
     }
-
-    const booking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Booking status updated",
-      booking,
-    });
-  } catch (error) {
-    console.error("Status update error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Unable to update booking status",
-    });
   }
-});
+);
+
+
+// ===============================
+// LOCAL SERVER
+// ===============================
+
 if (process.env.NODE_ENV !== "production") {
   app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(
+      `Server running on http://localhost:${PORT}`
+    );
   });
 }
 
+
+// Export for Vercel
 export default app;
