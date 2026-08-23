@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 
-// import connectDB from "./config/db.js";
+import connectDB from "./config/db.js";
 import Booking from "./models/Booking.js";
 import protect from "./middleware/authMiddleware.js";
 
@@ -27,7 +27,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Connect MongoDB
-// connectDB();
+connectDB();
 
 // Middleware
 app.use(
