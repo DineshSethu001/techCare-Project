@@ -122,7 +122,7 @@ const sendWhatsApp = async (e) => {
 
         {/* Form */}
         <form
-          onSubmit={handleBooking}
+          onSubmit={sendWhatsApp}
           className="border rounded-2xl p-6 shadow-sm"
         >
 
