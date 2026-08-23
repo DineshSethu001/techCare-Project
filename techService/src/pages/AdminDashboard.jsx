@@ -3,8 +3,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { LogOut } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import {
   Search,
   Phone,
@@ -16,7 +14,9 @@ import {
   MessageCircle,
   Bell,
   X,
+  LogOut,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const [bookings, setBookings] = useState([]);
@@ -39,11 +39,12 @@ const logout = () => {
  const fetchBookings = async () => {
   try {
     setLoading(true);
+    setError("");
 
     const token = localStorage.getItem("adminToken");
 
     if (!token) {
-      navigate("/admin-login");
+      navigate("/admin/login");
       return;
     }
 
@@ -60,14 +61,19 @@ const logout = () => {
 
     const data = await response.json();
 
+    if (response.status === 401) {
+      localStorage.removeItem("adminToken");
+      navigate("/admin/login");
+      return;
+    }
+
     if (!response.ok) {
       throw new Error(
         data.message || "Unable to load bookings"
       );
     }
 
-    setBookings(data.bookings);
-
+    setBookings(data.bookings || []);
   } catch (error) {
     console.error("Bookings error:", error);
     setError(error.message);
@@ -131,11 +137,23 @@ const logout = () => {
         const response = await fetch(
 fetch(`${import.meta.env.VITE_API_URL}/api/bookings`)        );
 
-        const data = await response.json();
+        const contentType =
+          response.headers.get("content-type") || "";
 
         if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem("adminToken");
+            navigate("/admin/login");
+          }
           return;
         }
+
+        if (!contentType.includes("application/json")) {
+          console.error("Booking API returned a non-JSON response.");
+          return;
+        }
+
+        const data = await response.json();
 
         const latestBookings = data.bookings || [];
 
@@ -188,17 +206,24 @@ fetch(`${import.meta.env.VITE_API_URL}/api/bookings`)        );
   ) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/bookings/${bookingId}/status`,
+        `${import.meta.env.VITE_API_URL}/api/bookings/${bookingId}/status`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
           },
           body: JSON.stringify({ status }),
         }
       );
 
       const data = await response.json();
+
+      if (response.status === 401) {
+        localStorage.removeItem("adminToken");
+        navigate("/admin/login");
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(
