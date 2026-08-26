@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 const services = [
   {
     icon: Laptop,
-    title: "Computer & Laptop Service",
+    title: "Computer & Laptop Repair Services",
     text: "Fast diagnosis, repair, upgrades, OS installation, virus cleanup and maintenance for desktops and laptops.",
     points: [
       "Hardware repair",
@@ -22,7 +22,7 @@ const services = [
   },
   {
     icon: Network,
-    title: "Networking Solutions",
+    title: "Networking & Wi-Fi Solutions",
     text: "Reliable wired and wireless networking for homes, offices, shops and small businesses.",
     points: [
       "Wi-Fi setup",
@@ -32,7 +32,7 @@ const services = [
   },
   {
     icon: Camera,
-    title: "CCTV Camera Installation",
+    title: "CCTV Camera Installation Services",
     text: "Professional CCTV installation with clean cabling, remote viewing and dependable security coverage.",
     points: [
       "Indoor & outdoor cameras",
@@ -54,9 +54,9 @@ const Services = () => {
             What we do
           </span>
 
-          <h1 className="text-4xl font-bold mt-3">
-            Services built around your needs
-          </h1>
+         <h2 className="text-4xl font-bold mt-3">
+  Computer, Networking & CCTV Services
+</h2>
 
           <p className="text-gray-600 mt-4">
             From a slow laptop to a complete office network,
@@ -78,9 +78,9 @@ const Services = () => {
                 <Icon size={25} />
               </div>
 
-              <h2 className="text-xl font-bold mt-5">
+              <h3 className="text-xl font-bold mt-5">
                 {title}
-              </h2>
+              </h3>
 
               <p className="text-gray-600 mt-3">
                 {text}
