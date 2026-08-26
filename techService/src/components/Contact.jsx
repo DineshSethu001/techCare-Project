@@ -134,10 +134,10 @@ const Contact = () => {
                 </span>
 
                 <a
-                  href="tel:+917339572897"
+                  href="tel:+919789561762"
                   className="font-semibold hover:text-blue-600"
                 >
-                  +91 73395728979
+                  +919789561762
                 </a>
               </div>
 
@@ -155,8 +155,7 @@ const Contact = () => {
                 </span>
 
                 <b>
-                  Your City & nearby areas
-                </b>
+Vellore & Nearby Areas | Within 100 km                </b>
               </div>
 
             </div>

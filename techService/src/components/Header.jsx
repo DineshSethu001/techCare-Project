@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, Phone, Wrench } from "lucide-react";
-
+import logo from '../../public/favicon1.png'
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -24,8 +24,8 @@ const Header = () => {
         <div className="container mx-auto px-4 flex justify-between">
           <span>Mon–Sat: 9:00 AM – 7:00 PM</span>
 
-          <a href="tel:+919999999999">
-            +91 99999 99999
+          <a href="tel:+919789561762">
+            +91 9789561762
           </a>
         </div>
       </div>
@@ -40,11 +40,10 @@ const Header = () => {
             onClick={closeMenu}
             className="flex items-center gap-2 font-bold text-xl"
           >
-            <span className="w-9 h-9 bg-blue-600 text-white rounded-lg flex items-center justify-center">
-              <Wrench size={20} />
-            </span>
+              <img src={logo} className="w-21 h-15"/>
+           
 
-            Tech<span className="text-blue-600">Care</span>
+            {/* Tech<span className="text-blue-600">Care</span> */}
           </Link>
 
           {/* Desktop Navigation */}
@@ -97,7 +96,7 @@ const Header = () => {
 
           {/* Call Button */}
           <a
-            href="tel:+919999999999"
+            href="tel:+919789561762"
             className="hidden md:flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             <Phone size={17} />
