@@ -8,7 +8,7 @@ import Process from "../components/Process";
 import Contact from "../components/Contact";
 import Footer from "../components/Footer";
 import FloatingWhatsApp from "../components/FloatingWhatsApp";
-
+import GoogleReviews from "../components/GoogleReviews";
 const Home = () => {
   return (
     <>
@@ -23,6 +23,15 @@ const Home = () => {
         <section id="services">
           <Services />
         </section>
+        <section id="services">
+  <Services />
+</section>
+
+<GoogleReviews />
+
+<section id="about">
+  <About />
+</section>  
 
         <section id="about">
           <About />

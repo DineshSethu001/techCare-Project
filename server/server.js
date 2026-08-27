@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-
+import "dotenv/config";
 import connectDB from "./config/db.js";
 import Booking from "./models/Booking.js";
 import protect from "./middleware/authMiddleware.js";
@@ -188,7 +188,40 @@ app.get(
   }
 );
 
+// reviews
+app.get("/api/reviews", async (req, res) => {
+  try {
+    const response = await fetch(
+      `https://places.googleapis.com/v1/places/${process.env.GOOGLE_PLACE_ID}`,
+      {
+        method: "GET",
+        headers: {
+          "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY,
+          "X-Goog-FieldMask": "id,displayName,reviews",
+        },
+      }
+    );
 
+    const data = await response.json();
+
+    console.log("Google response:", JSON.stringify(data, null, 2));
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        message: "Failed to fetch Google reviews",
+        error: data,
+      });
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error("Reviews error:", error);
+
+    res.status(500).json({
+      message: "Server error while fetching reviews",
+    });
+  }
+});
 // ===============================
 // UPDATE BOOKING STATUS
 // ===============================
