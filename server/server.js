@@ -32,7 +32,7 @@ connectDB();
 // Middleware
 app.use(
   cors({
-    origin: "https://tech-care-project-2vrw.vercel.app",
+    origin: "https://techcare-eight.vercel.app/",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
