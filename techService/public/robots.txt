@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tech-care-project-2vrw.vercel.app/sitemap.xml
